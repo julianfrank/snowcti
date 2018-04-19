@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <database>
     <element attributes="live_feed=true" label="Cti1 Table" max_length="40" name="x_206398_cti1_table" type="collection">
+        <element choice="3" default="true" display="true" label="Active" max_length="5" name="active" type="boolean">
+            <choice>
+                <element label="-- New choice --" value="-- New choice --"/>
+            </choice>
+        </element>
+        <element choice="3" choice_field="cti_status" choice_table="x_206398_cti1_table" default="00" label="CTI Status" mandatory="true" max_length="1" name="cti_status" type="choice">
+            <choice>
+                <element label="-- New choice --" value="-- New choice --"/>
+            </choice>
+        </element>
         <element attributes="ignore_filter_on_new=true" default="javascript:global.getNextObjNumberPadded();" label="Number" max_length="40" name="number" type="string"/>
         <element default="javascript:current.getTableName();" label="Class" max_length="80" name="sys_class_name" type="sys_class_name"/>
+        <element choice="2" label="userid" mandatory="true" max_length="255" name="useriduser_id" type="string">
+            <choice/>
+        </element>
     </element>
 </database>

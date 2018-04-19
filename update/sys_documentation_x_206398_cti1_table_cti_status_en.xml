@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update>
+    <sys_documentation element="cti_status" label="CTI Status" language="en" table="x_206398_cti1_table">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>cti_status</element>
+            <help/>
+            <hint/>
+            <label>CTI Status</label>
+            <language>en</language>
+            <name>x_206398_cti1_table</name>
+            <plural>CTI Status</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>admin</sys_created_by>
+            <sys_created_on>2018-04-19 09:55:46</sys_created_on>
+            <sys_id>324d1af10fa113008dcbb36be1050eaa</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>CTI Status</sys_name>
+            <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
+            <sys_update_name>sys_documentation_x_206398_cti1_table_cti_status_en</sys_update_name>
+            <sys_updated_by>admin</sys_updated_by>
+            <sys_updated_on>2018-04-19 09:55:46</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>

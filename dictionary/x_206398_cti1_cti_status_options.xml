@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <element label="CTI Status Options" max_length="40" name="x_206398_cti1_cti_status_options" type="collection">
+        <element choice="3" default="true" display="true" label="Active" max_length="1" name="active" type="boolean">
+            <choice>
+                <element label="true" value="true"/>
+            </choice>
+        </element>
+        <element label="Status Code" mandatory="true" max_length="40" name="status_code" type="string"/>
+        <element label="Status Text" mandatory="true" max_length="40" name="status_text" type="string"/>
+    </element>
+</database>
