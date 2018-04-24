@@ -11,17 +11,34 @@
         <name>Update Splash with Agent Data</name>
         <order/>
         <script><![CDATA[function onLoad() {
-   //Type appropriate comment here, and begin script below
-   alert('first name = ' + g_user.userID);
-	g_form.setValue("userid",g_user.userID);
-}]]></script>
+	//Type appropriate comment here, and begin script below
+	g_form.setValue('useriduser_id',g_user.userName);
+	var ga = new GlideAjax('sitest1');
+	ga.addParam('sysparm_name', 'greetingFunction');
+	ga.addParam('sysparm_my_name', 'JF');
+	ga.getXML(myCallBack);
+	
+	function myCallBack(response) {
+		var language;
+		var grtng;
+		var greetings = response.responseXML.getElementsByTagName('greeting');
+		
+		for (var i = 0; i < greetings.length; i++) {
+			language = greetings[i].getAttribute('lang');
+			grtng = greetings[i].getAttribute('value');
+			alert(language + ': ' + grtng);
+		}
+	}
+}
+
+]]></script>
         <sys_class_name>sys_script_client</sys_class_name>
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2018-04-19 13:21:15</sys_created_on>
         <sys_domain>global</sys_domain>
         <sys_domain_path>/</sys_domain_path>
         <sys_id>d9aa033d0fe113008dcbb36be1050ef4</sys_id>
-        <sys_mod_count>10</sys_mod_count>
+        <sys_mod_count>39</sys_mod_count>
         <sys_name>Update Splash with Agent Data</sys_name>
         <sys_overrides/>
         <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
@@ -29,7 +46,7 @@
         <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
         <sys_update_name>sys_script_client_d9aa033d0fe113008dcbb36be1050ef4</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2018-04-19 13:51:30</sys_updated_on>
+        <sys_updated_on>2018-04-24 13:54:39</sys_updated_on>
         <table>x_206398_cti1_table</table>
         <type>onLoad</type>
         <ui_type>10</ui_type>

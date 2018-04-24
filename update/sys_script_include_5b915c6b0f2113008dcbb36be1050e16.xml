@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_206398_cti1.sitest1</api_name>
+        <client_callable>true</client_callable>
+        <description>Testing Script Include</description>
+        <name>sitest1</name>
+        <script><![CDATA[var sitest1 = Class.create();
+sitest1.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+		greetingFunction: function() {
+			var userName = this.getParameter('sysparm_my_name');
+			this._getEnglishMsg(userName);
+			this._getFrenchMsg(userName);
+			this._getSpanishMsg(userName);
+		},
+		
+		_getEnglishMsg: function(userName) {
+			var greeting = 'Howdy, ' + userName + '. How are you?';
+			var msg = this.newItem('greeting');
+			msg.setAttribute('lang', 'English');
+			msg.setAttribute('value', greeting);
+		},
+		
+		_getFrenchMsg: function(userName) {
+			var greeting = 'Bonjour, ' + userName + '. Ca-va?';
+			var msg = this.newItem('greeting');
+			msg.setAttribute('lang', 'French');
+			msg.setAttribute('value', greeting);
+		},
+		
+		_getSpanishMsg: function(userName) {
+			var greeting = 'Hola, ' + userName + '. Cómo estás?';
+			var msg = this.newItem('greeting');
+			msg.setAttribute('lang', 'Spanish');
+			msg.setAttribute('value', greeting);
+		}
+	});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-04-24 10:16:11</sys_created_on>
+        <sys_id>5b915c6b0f2113008dcbb36be1050e16</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>sitest1</sys_name>
+        <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
+        <sys_update_name>sys_script_include_5b915c6b0f2113008dcbb36be1050e16</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-04-24 13:52:35</sys_updated_on>
+    </sys_script_include>
+</record_update>
