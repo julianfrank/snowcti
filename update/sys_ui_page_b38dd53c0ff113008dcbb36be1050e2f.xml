@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[var app=angular.module("myApp2",[]);
+app.controller("myCtrl",function($scope){
+		
+	$scope.agtName=g_user.userName;
+	$scope.showBtnLogin=true;
+	$scope.showBtnReady=true;
+	$scope.showBtnPause=true;
+	$scope.showBtnLogout=true;
+	
+	$scope.clickedLogin=function(){alert("Login");};
+	$scope.clickedReady=function(){alert("Ready");};
+	$scope.clickedPause=function(){alert("Pause");};
+	$scope.clickedLogout=function(){alert("Logout");};
+
+});]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_206398_cti1_Agent Page.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	
+<g2:evaluate var="jvar_stamp">
+        var gr = new GlideRecord('sys_ui_script');  
+        gr.orderByDesc('sys_updated_on');  
+        gr.query();  
+        gr.next();  
+        gr.getValue('sys_updated_on');  
+    </g2:evaluate>  
+    <g:requires name="angularjs1.6.5.jsdbx" params="cache=$[jvar_stamp]" /> 
+	
+	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"/>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"/>
+	<style>
+		html,body,h1,h2,h3,h4 {font-family:"Lato", sans-serif}
+		.w3-tag, .fa {cursor:pointer}
+		.w3-tag {height:15px;width:15px;padding:0;margin-top:6px}
+	</style>
+	
+	<div class="w3-black" id="container" ng-app="myApp2" ng-controller="myCtrl">
+		<!-- Buttons (sit on top) -->
+		<div class="w3-top">
+		  <div class="w3-row w3-large w3-light-grey">
+			<div class="w3-col s3">
+			  <button ng-click="clickedLogin()" class="w3-button w3-ripple w3-block" ng-disabled="!showBtnLogin">Login</button>
+			</div>
+			<div class="w3-col s3">
+				<button ng-click="clickedReady()" class="w3-button w3-ripple w3-block" ng-disabled="!showBtnReady">Ready</button>
+			</div>
+			<div class="w3-col s3">
+				<button ng-click="clickedPause()" class="w3-button w3-ripple w3-block" ng-disabled="!showBtnPause">Pause</button>
+			</div>
+			<div class="w3-col s3">
+				<button ng-click="clickedLogout()" class="w3-button w3-ripple w3-block" ng-disabled="!showBtnLogout">Logout</button>
+			</div>
+			  <div class="w3-col s3">
+				  <span>{{agtName}}</span>
+			</div>
+		  </div>
+		</div>
+	</div>
+</j:jelly>
+
+]]></html>
+        <name>Agent Page</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2018-04-28 12:59:24</sys_created_on>
+        <sys_id>b38dd53c0ff113008dcbb36be1050e2f</sys_id>
+        <sys_mod_count>78</sys_mod_count>
+        <sys_name>Agent Page</sys_name>
+        <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
+        <sys_update_name>sys_ui_page_b38dd53c0ff113008dcbb36be1050e2f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2018-04-29 15:23:36</sys_updated_on>
+    </sys_ui_page>
+</record_update>
