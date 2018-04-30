@@ -52,6 +52,7 @@ app.controller("myCtrl",function($scope){
 
 	<!-- Import / Require the Angular Library -->
 	<g:requires name="angularjs1.6.5.jsdbx" />
+	<script type="text/javascript" src="//media.twiliocdn.com/sdk/js/client/v1.4/twilio.min.js"></script>
 	<!-- Import the CSS for W3.css based Layout -->
 	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato" />
@@ -71,6 +72,12 @@ app.controller("myCtrl",function($scope){
 			
 		</div>
 	</div>
+	
+	<!-- twilio item -->
+	<script>
+		var tw={asid :"AC1e75596b232dc998795a0a8ecbb534a9", atoken :"9054f474aeac83c79396ff8ef1158ffb"}
+	</script>
+	
 	<!-- Widget HTML Code Block Ends Here -->
 	
 </j:jelly>]]></html>
@@ -80,13 +87,13 @@ app.controller("myCtrl",function($scope){
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2018-04-28 12:59:24</sys_created_on>
         <sys_id>b38dd53c0ff113008dcbb36be1050e2f</sys_id>
-        <sys_mod_count>152</sys_mod_count>
+        <sys_mod_count>158</sys_mod_count>
         <sys_name>Agent Page</sys_name>
         <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
         <sys_policy/>
         <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
         <sys_update_name>sys_ui_page_b38dd53c0ff113008dcbb36be1050e2f</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2018-04-30 09:29:44</sys_updated_on>
+        <sys_updated_on>2018-04-30 11:31:19</sys_updated_on>
     </sys_ui_page>
 </record_update>
