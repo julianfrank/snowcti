@@ -4,45 +4,59 @@
         <category>general</category>
         <client_script><![CDATA[var app=angular.module("myApp2",[]);
 app.controller("myCtrl",function($scope){
-	//Init UI States
+	
+	//Agent UI
+	//Exposed Stuff
 	$scope.agtName=g_user.getFullName();
 	$scope.showBtnLogin=false;
 	$scope.showBtnReady=false;
 	$scope.showBtnPause=false;
 	$scope.showBtnLogout=false;
-	$scope.currentState="Logout";
-	
-	//Init State Manager
-	var stateMap={"Login":["Ready"],"Ready":["Pause","Logout"],"Pause":["Ready","Logout"],			"Logout":["Login"]};
-	function setState(newState){
-		if ( stateMap[$scope.currentState].indexOf(newState)!= -1){
-			switch (newState){
-					case "Login":
-						$scope.currentState="Login";
-						break;
-					case "Ready":
-						$scope.currentState="Ready";
-						break;
-					case "Pause":
-						$scope.currentState="Pause";
-						break;
-					case "Logout":
-						$scope.currentState="Logout";
-						break;
-			}
-			refreshUI();
-		}else{			alert("Invalid newState:"+newState+"for currentstate:"+$scope.currentState);		}
+	$scope.currentAgentState="Logout";
+	$scope.clickedLogin=function(){setAgentState("Login");};
+	$scope.clickedReady=function(){setAgentState("Ready");};
+	$scope.clickedPause=function(){setAgentState("Pause");};
+	$scope.clickedLogout=function(){setAgentState("Logout");};
+	//Agent state Map
+	var agentStateMap={"Login":["Ready"],"Ready":["Pause","Logout",],"Pause":["Ready","Logout"],"Busy":["Pause","Ready"],"Logout":["Login"]};
+	//Agent State Manager
+	function setAgentState(newAgentState){
+		if ( agentStateMap[$scope.currentAgentState].indexOf(newAgentState)!= -1){
+			$scope.currentAgentState=newAgentState;
+			refreshAgentUI();
+		}else{			
+			alert("Invalid newAgentState:"+newAgentState+" for currentAgentState:"+$scope.currentAgentState);		
+		}
 	}
-	function refreshUI(){
-		for (var state in stateMap){			$scope["showBtn"+state] = stateMap[$scope.currentState].indexOf(state)!=-1;		}
+	function refreshAgentUI(){
+		for (var state in agentStateMap){$scope["showBtn"+state] = agentStateMap[$scope.currentAgentState].indexOf(state)!=-1;}
 	}
-	refreshUI();
-	
-	$scope.clickedLogin=function(){setState("Login");};
-	$scope.clickedReady=function(){setState("Ready");};
-	$scope.clickedPause=function(){setState("Pause");};
-	$scope.clickedLogout=function(){setState("Logout");};
+	refreshAgentUI();
 
+	// Call Related Stuff
+	// Exposed Vars
+	$scope.showBtnAccept=false;
+	$scope.showBtnReject=false;
+	$scope.showBtnEnd=false;
+	$scope.clickedAccept=function(){setAgentState("Busy");};
+	$scope.clickedReject=function(){setAgentState("Pause");};
+	$scope.clickedEnd=function(){setAgentState("Pause");};
+	$scope.currentCallState="NotReady";
+	//Call state Map
+	var callStateMap={"NotReady":[],"Ringing":["Accept","Reject"],"Ready":[],"Busy":["End"]};
+	//Call State Manager
+	function setCallState(newCallState){
+		if ( callStateMap[$scope.currentCallState].indexOf(newCallState)!= -1){
+			$scope.currentCallState=newCallState;
+			refreshCallUI();
+		}else{			
+			alert("Invalid newCallState:"+newCallState+" for currentcallstate:"+$scope.currentCallState);		
+		}
+	}
+	function refreshCallUI(){
+		for (var state in callStateMap){$scope["showBtn"+state] = callStateMap[$scope.currentCallState].indexOf(state)!=-1;}
+	}
+	refreshCallUI();
 });]]></client_script>
         <description/>
         <direct>false</direct>
@@ -52,6 +66,7 @@ app.controller("myCtrl",function($scope){
 
 	<!-- Import / Require the Angular Library -->
 	<g:requires name="angularjs1.6.5.jsdbx" />
+	<!-- Import Twilio Client -->
 	<script type="text/javascript" src="//media.twiliocdn.com/sdk/js/client/v1.4/twilio.min.js"></script>
 	<!-- Import the CSS for W3.css based Layout -->
 	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
@@ -61,22 +76,28 @@ app.controller("myCtrl",function($scope){
 	<style>	html,body,h1,h2,h3,h4 {font-family: "Lato", sans-serif}	</style>
 
 	<!-- Widget HTML Code -->
-	<div class="w3-bottom w3-container w3-small" ng-app="myApp2" ng-controller="myCtrl">
+	<div class="w3-bottom w3-container w3-medium w3-margin" ng-app="myApp2" ng-controller="myCtrl">
 		<!-- Buttons (sit on top) -->
 		<div class="w3-row">
-			<button ng-click="clickedLogin()" class=" w3-col s5 m4 l3 w3-button w3-ripple w3-block" ng-show="showBtnLogin">Login</button>
-			<button ng-click="clickedReady()" class=" w3-col s5 m4 l3 w3-button w3-ripple w3-block" ng-show="showBtnReady">Ready</button>
-			<button ng-click="clickedPause()" class=" w3-col s5 m4 l3 w3-button w3-ripple w3-block" ng-show="showBtnPause">Pause</button>
-			<button ng-click="clickedLogout()" class=" w3-col s5 m4 l3 w3-button w3-ripple w3-block" ng-show="showBtnLogout">Logout</button>
-			<div class="w3-rest w3-block w3-hide-small"><span>Agent Name : {{agtName}} | Current State : {{currentState}}</span></div>
-			
+			<span class="w3-margin">
+				<button ng-click="clickedLogin()" class="w3-button w3-ripple w3-green" ng-show="showBtnLogin">Login</button>
+				<button ng-click="clickedReady()" class="w3-button w3-ripple w3-green" ng-show="showBtnReady">Ready</button>
+				<button ng-click="clickedPause()" class="w3-button w3-ripple w3-orange" ng-show="showBtnPause">Pause</button>
+				<button ng-click="clickedLogout()" class="w3-button w3-ripple w3-red" ng-show="showBtnLogout">Logout</button>
+			</span>
+			<span class="w3-margin">
+				<button ng-click="clickedAccept()" class="w3-button w3-ripple w3-green" ng-show="showBtnAccept">Accept</button>
+				<button ng-click="clickedReject()" class="w3-button w3-ripple w3-red" ng-show="showBtnReject">Reject</button>
+				<button ng-click="clickedEnd()" class="w3-button w3-ripple w3-red" ng-show="showBtnEnd">End Call</button>
+			</span>
+		</div>
+		<div class="w3-row">
+				Agent Name : <span class="w3-tag w3-margin w3-round w3-center w3-hide-small">{{agtName}}</span>
+				Current Agent State : <span class="w3-tag w3-margin w3-round w3-center w3-hide-small">{{currentAgentState}}</span>
+				Current Call State : <span class="w3-tag w3-margin w3-round w3-center w3-hide-small">{{currentCallState}}</span>
 		</div>
 	</div>
 	
-	<!-- twilio item -->
-	<script>
-		var tw={asid :"AC1e75596b232dc998795a0a8ecbb534a9", atoken :"9054f474aeac83c79396ff8ef1158ffb"}
-	</script>
 	
 	<!-- Widget HTML Code Block Ends Here -->
 	
@@ -87,13 +108,13 @@ app.controller("myCtrl",function($scope){
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2018-04-28 12:59:24</sys_created_on>
         <sys_id>b38dd53c0ff113008dcbb36be1050e2f</sys_id>
-        <sys_mod_count>158</sys_mod_count>
+        <sys_mod_count>196</sys_mod_count>
         <sys_name>Agent Page</sys_name>
         <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
         <sys_policy/>
         <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
         <sys_update_name>sys_ui_page_b38dd53c0ff113008dcbb36be1050e2f</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2018-04-30 11:31:19</sys_updated_on>
+        <sys_updated_on>2018-05-01 07:53:02</sys_updated_on>
     </sys_ui_page>
 </record_update>
