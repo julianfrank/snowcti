@@ -2,126 +2,182 @@
 <record_update table="sys_ui_page">
     <sys_ui_page action="INSERT_OR_UPDATE">
         <category>general</category>
-        <client_script><![CDATA[var app=angular.module("myApp2",[]);
-app.controller("myCtrl",function($scope,$http){
+        <client_script><![CDATA[var ctiApp = angular.module("ctiApp", []); ctiApp.controller("callCtrl", function ($scope, $http) { // Private Vars
+	var localDevice,//Object Holding the Twilio Device
+	localConn;//Object Holding the Call Connection
 	
-	//Agent UI
-	//Exposed Stuff
-	$scope.agentName=g_user.userName;
-	$scope.showBtnLogin=false;
-	$scope.showBtnReady=false;
-	$scope.showBtnPause=false;
-	$scope.showBtnLogout=false;
-	$scope.currentAgentState="Logout";
-	$scope.clickedLogin=function(){setAgentState("Login");};
-		$scope.clickedReady=function(){setAgentState("Ready");};
-			$scope.clickedPause=function(){setAgentState("Pause");};
-				$scope.clickedLogout=function(){setAgentState("Logout");};
-					//Agent state Map
-					var agentStateMap={"Login":["Ready"],"Ready":["Pause","Logout",],"Pause":["Ready","Logout"],"Busy":["Pause","Ready"],"Logout":["Login"]};
-						//Agent State Manager
-						function setAgentState(newAgentState){
-							if ( agentStateMap[$scope.currentAgentState].indexOf(newAgentState)!= -1){
-								$scope.currentAgentState=newAgentState;
-								refreshAgentUI();
-							}else{
-								alert("Invalid newAgentState:"+newAgentState+" for currentAgentState:"+$scope.currentAgentState);
-							}
+	// Exposed Vars
+	$scope.showBtnAccept = false;
+	$scope.showBtnReject = false;
+	$scope.showBtnEnd = false;
+	$scope.clickedAccept = function () {
+		localConn.accept();
+		setCallState("Busy");
+	};
+	$scope.clickedReject = function () {
+		localConn.reject();
+		setCallState("Ready");
+	};
+	$scope.clickedEnd = function () {
+		Twilio.Device.disconnectAll();
+		setCallState("Ready");
+	};
+	$scope.currentCallState =  "NotReady" ;
+	//Call state Map
+	var callStateMap = { "NotReady": [], "Ringing": ["Accept", "Reject"], "Ready": [], "Busy": ["End"] };//[Warning] Map Logic is not the same as Agent State Map
+		//Call State Manager
+		function setCallState(newCallState) {
+			if (newCallState in callStateMap) {
+				$scope.currentCallState = newCallState;
+				refreshCallUI();
+			} else {
+				console.error("Invalid newCallState:" + newCallState + " for currentcallstatus:" + $scope.currentCallState);
+			}
+		}
+		
+		var voiceButtons = ["Accept", "Reject", "End"];
+		
+		function refreshCallUI() {
+			voiceButtons.forEach(function(action){
+				$scope["showBtn" + action] = callStateMap[$scope.currentCallState].indexOf(action) != -1;
+			});
+			
+			if (!$scope.$$phase) $scope.$apply();
+			}
+		refreshCallUI();
+		
+		//Twilio Stuff
+		function getToken(agentName) {
+			$http({ method: "GET", url: "https://twapp.glitch.me/getToken/" + agentName }).then(function (response) {
+				var twilioToken = response.data;
+				Twilio.Device.setup(twilioToken);
+				Twilio.Device.ready(function(device){setCallState("Ready"); }     );
+					Twilio.Device.error(function (error) {
+						console.log('Twilio.Device Error: ', error);
+					});
+					Twilio.Device.incoming(function (conn) {
+						localConn=conn;
+						setCallState("Ringing");
+						console.log('Incoming connection from ' + conn.parameters.From);
+						var archEnemyPhoneNumber = ' + 919940634233';
+						if (conn.parameters.From === archEnemyPhoneNumber) {
+							conn.reject();
+							console.log('It\'s your nemesis. Rejected call.');
+						} else { // accept the incoming connection and start two-way audio
+							console.log("Waiting for user to Pickup/End");
 						}
-						function refreshAgentUI(){
-							for (var state in agentStateMap){$scope["showBtn"+state] = agentStateMap[$scope.currentAgentState].indexOf(state)!=-1;}
-							}
-							refreshAgentUI();
-							
-							// Call Related Stuff
-							// Exposed Vars
-							$scope.showBtnAccept=false;
-							$scope.showBtnReject=false;
-							$scope.showBtnEnd=false;
-							$scope.clickedAccept=function(){setAgentState("Busy");};
-								$scope.clickedReject=function(){setAgentState("Pause");};
-									$scope.clickedEnd=function(){setAgentState("Pause");};
-										$scope.currentCallState="NotReady";
-										//Call state Map
-										var callStateMap={"NotReady":[],"Ringing":["Accept","Reject"],"Ready":[],"Busy":["End"]};//[Warning] Map Logic is not the same as Agent State Map
-											var callActionButtons=["Accept","Reject","End"];
-											//Call State Manager
-											function setCallState(newCallState){
-												if ( newCallState in callStateMap){
-													$scope.currentCallState = newCallState;
-													refreshCallUI();
-												}else{
-													alert("Invalid newCallState:"+newCallState+" for currentcallstate:"+$scope.currentCallState);
-												}
-											}
-											function refreshCallUI(){
-												for (var action in callActionButtons){
-													$scope["showBtn"+action] = callStateMap[$scope.currentCallState].indexOf(action) != -1;}
-												}
-												refreshCallUI();
-												
-												//Twilio Stuff
-												var twilioToken="";
-												function getToken(agentName){
-													$http({method: "GET", url: "https://twapp.glitch.me/getToken/"+agentName}).
-														then(function(response) {
-															twilioToken = response.data;
-															Twilio.Device.setup(twilioToken);
-															Twilio.Device.ready(function(device){ setCallState("Ready");});
-															Twilio.Device.error(function (error) {
-																console.log('Twilio.Device Error: ', error);
-															});
-															
-														}, function(response) {
-															console.error(response.data || 'Request failed');
-														});
-													}
-													getToken($scope.agentName);
-													
-												});]]></client_script>
+					});
+					Twilio.Device.connect(function (conn) {
+						localConn=conn;
+						setCallState("Busy");
+						console.log("Twilio.Device.connect");
+					});
+					Twilio.Device.disconnect(function (conn) {
+						localConn=conn;
+						setCallState("Ready");
+						console.log("Twilio.Device.disconnect");
+					});
+				}, function (response) {
+					console.error(response.data || 'Request	failed');
+				});
+			}
+			getToken(g_user.userName);
+		});
+		
+		ctiApp.controller("agentCtrl", function ($scope) { //Agent UI
+			//Exposed Stuff
+			$scope.agentName = g_user.userName;
+			$scope.showBtnLogin = false;
+			$scope.showBtnReady = false;
+			$scope.showBtnPause = false;
+			$scope.showBtnLogout = false;
+			$scope.currentAgentState = "Logout";
+			$scope.clickedLogin = function () {
+				setAgentState("Login");
+			};
+			$scope.clickedReady = function () {
+				setAgentState("Ready");
+			}; $scope.clickedPause = function () {
+				setAgentState("Pause");
+			};
+			$scope.clickedLogout = function () {
+				setAgentState("Logout");
+			};
+			//Agent state Map
+			var agentStateMap = { "Login": ["Ready"], "Ready": ["Pause", "Logout",], "Pause": ["Ready", "Logout"], "Busy": ["Pause", "Ready"], "Logout": ["Login"] };
+				//Agent State Manager
+				function setAgentState(newAgentState) {
+					if (agentStateMap[$scope.currentAgentState].indexOf(newAgentState) != -1) {
+						$scope.currentAgentState = newAgentState;
+						refreshAgentUI();
+					} else {
+						alert("Invalid newAgentState:" + newAgentState + " for currentAgentState: " + $scope.currentAgentState);
+					}
+				}
+				function refreshAgentUI() {
+					for (var state in agentStateMap) {
+						$scope["showBtn" + state] = agentStateMap[$scope.currentAgentState].indexOf(state) != -1;
+					}
+				}
+				refreshAgentUI();
+			});]]></client_script>
         <description/>
         <direct>false</direct>
         <endpoint>x_206398_cti1_Agent Page.do</endpoint>
         <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
 <j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
 
-	<!-- Import / Require the Angular Library -->
-	<g:requires name="angularjs1.6.5.jsdbx" />
-	<!-- Import Twilio Client -->
-	<script type="text/javascript" src="//media.twiliocdn.com/sdk/js/client/v1.4/twilio.min.js"></script>
-	<!-- Import the CSS for W3.css based Layout -->
-	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-	<!-- CSS Specifications -->
-	<style>	html,body,h1,h2,h3,h4 {font-family: "Lato", sans-serif}	</style>
+  <!-- Import / Require the Angular Library -->
+  <g:requires name="angularjs1.6.5.jsdbx" />
+  <!-- Import Twilio Client -->
+  <script type="text/javascript" src="//media.twiliocdn.com/sdk/js/client/v1.4/twilio.min.js"></script>
+  <!-- Import the CSS for W3.css based Layout -->
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <!-- CSS Specifications -->
+  <style>
+    html,
+    body,
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: "Lato", sans-serif
+    }
+  </style>
 
-	<!-- Widget HTML Code -->
-	<div class="w3-bottom w3-container w3-medium w3-margin" ng-app="myApp2" ng-controller="myCtrl">
-		<!-- Buttons (sit on top) -->
-		<div class="w3-row">
-			<span class="w3-margin">
-				<button ng-click="clickedLogin()" class="w3-button w3-ripple w3-green" ng-show="showBtnLogin">Login</button>
-				<button ng-click="clickedReady()" class="w3-button w3-ripple w3-green" ng-show="showBtnReady">Ready</button>
-				<button ng-click="clickedPause()" class="w3-button w3-ripple w3-orange" ng-show="showBtnPause">Pause</button>
-				<button ng-click="clickedLogout()" class="w3-button w3-ripple w3-red" ng-show="showBtnLogout">Logout</button>
-			</span>
-			<span class="w3-margin">
-				<button ng-click="clickedAccept()" class="w3-button w3-ripple w3-green" ng-show="showBtnAccept">Accept</button>
-				<button ng-click="clickedReject()" class="w3-button w3-ripple w3-red" ng-show="showBtnReject">Reject</button>
-				<button ng-click="clickedEnd()" class="w3-button w3-ripple w3-red" ng-show="showBtnEnd">End Call</button>
-			</span>
-		</div>
-		<div class="w3-row w3-small">
-				Agent Name : <span class="w3-tag w3-margin w3-round">{{agentName}}</span>
-				Current Agent State : <span class="w3-tag w3-margin w3-round">{{currentAgentState}}</span>
-				Current Call State : <span class="w3-tag w3-margin w3-round">{{currentCallState}}</span>
-		</div>
-	</div>
-	
-	
-	<!-- Widget HTML Code Block Ends Here -->
-	
+  <!-- Widget HTML Code -->
+  <div class="w3-bottom w3-margin"  ng-app="ctiApp">
+	  
+	  <!-- Call Management -->
+    <span class="w3-container" ng-controller="callCtrl">
+      <span class="w3-margin">
+        <button ng-click="clickedAccept()" class="w3-button w3-ripple w3-green" ng-show="showBtnAccept">Accept</button>
+        <button ng-click="clickedReject()" class="w3-button w3-ripple w3-red" ng-show="showBtnReject">Reject</button>
+        <button ng-click="clickedEnd()" class="w3-button w3-ripple w3-red" ng-show="showBtnEnd">End Call</button>
+      </span>
+      Current Call State : <span class="w3-tag w3-round">{{currentCallState}}</span>
+    </span>
+	  
+    <!-- Agent State Management-->
+    <span class="w3-container" ng-controller="agentCtrl">
+      <!-- Buttons (sit on top) -->
+      <span class="w3-margin">
+        <button ng-click="clickedLogin()" class="w3-button w3-ripple w3-green" ng-show="showBtnLogin">Login</button>
+        <button ng-click="clickedReady()" class="w3-button w3-ripple w3-green" ng-show="showBtnReady">Ready</button>
+        <button ng-click="clickedPause()" class="w3-button w3-ripple w3-orange" ng-show="showBtnPause">Pause</button>
+        <button ng-click="clickedLogout()" class="w3-button w3-ripple w3-red" ng-show="showBtnLogout">Logout</button>
+      </span>
+      Agent Name : <span class="w3-tag w3-round">{{agentName}} </span>
+      Current Agent State : <span class="w3-tag w3-round">{{currentAgentState}}</span>
+    </span>
+    
+  </div>
+
+
+  <!-- Widget HTML Code Block Ends Here -->
+
 </j:jelly>]]></html>
         <name>Agent Page</name>
         <processing_script/>
@@ -129,13 +185,13 @@ app.controller("myCtrl",function($scope,$http){
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2018-04-28 12:59:24</sys_created_on>
         <sys_id>b38dd53c0ff113008dcbb36be1050e2f</sys_id>
-        <sys_mod_count>216</sys_mod_count>
+        <sys_mod_count>274</sys_mod_count>
         <sys_name>Agent Page</sys_name>
         <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
         <sys_policy/>
         <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
         <sys_update_name>sys_ui_page_b38dd53c0ff113008dcbb36be1050e2f</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2018-05-01 12:41:33</sys_updated_on>
+        <sys_updated_on>2018-05-02 14:04:47</sys_updated_on>
     </sys_ui_page>
 </record_update>
