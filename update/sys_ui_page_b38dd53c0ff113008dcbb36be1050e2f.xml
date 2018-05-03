@@ -2,7 +2,9 @@
 <record_update table="sys_ui_page">
     <sys_ui_page action="INSERT_OR_UPDATE">
         <category>general</category>
-        <client_script><![CDATA[var ctiApp = angular.module("ctiApp", []); ctiApp.controller("callCtrl", function ($scope, $http) { // Private Vars
+        <client_script><![CDATA[var ctiApp = angular.module("ctiApp", []);
+
+ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
 	var localDevice,//Object Holding the Twilio Device
 	localConn;//Object Holding the Call Connection
 	
@@ -17,110 +19,137 @@
 	$scope.clickedReject = function () {
 		localConn.reject();
 		setCallState("Ready");
-	};
+		$scope.disableAgentBtns=false;
+		if (!$scope.$$phase) $scope.$apply();
+		};
 	$scope.clickedEnd = function () {
-		Twilio.Device.disconnectAll();
-		setCallState("Ready");
+		localConn.disconnect();
+		setCallState("NotReady");
 	};
 	$scope.currentCallState =  "NotReady" ;
 	//Call state Map
-	var callStateMap = { "NotReady": [], "Ringing": ["Accept", "Reject"], "Ready": [], "Busy": ["End"] };//[Warning] Map Logic is not the same as Agent State Map
-		//Call State Manager
-		function setCallState(newCallState) {
-			if (newCallState in callStateMap) {
-				$scope.currentCallState = newCallState;
-				refreshCallUI();
-			} else {
-				console.error("Invalid newCallState:" + newCallState + " for currentcallstatus:" + $scope.currentCallState);
-			}
+	var callStateMap = {
+		"NotReady": [],
+		"Ringing": ["Accept", "Reject"],
+		"Ready": [],
+		"Busy": ["End"]
+	};//[Warning] Map Logic is not the same as Agent State Map
+	//Call State Manager
+	function setCallState(newCallState) {
+		if (newCallState in callStateMap) {
+			$scope.currentCallState = newCallState;
+			refreshCallUI();
+		} else {
+			console.error("Invalid newCallState:" + newCallState + " for currentcallstatus:" + $scope.currentCallState);
+		}
+	}
+	
+	var voiceButtons = ["Accept", "Reject", "End"];
+	
+	function refreshCallUI() {
+		voiceButtons.forEach(function(action){
+			$scope["showBtn" + action] = callStateMap[$scope.currentCallState].indexOf(action) != -1;
+		});
+		
+		if (!$scope.$$phase) $scope.$apply();
+		}
+	refreshCallUI();
+	
+	//Twilio Stuff
+	function getToken(agentName) {
+		return $http({ method: "GET", url: "https://twapp.glitch.me/getToken/" + agentName });
 		}
 		
-		var voiceButtons = ["Accept", "Reject", "End"];
-		
-		function refreshCallUI() {
-			voiceButtons.forEach(function(action){
-				$scope["showBtn" + action] = callStateMap[$scope.currentCallState].indexOf(action) != -1;
+		function initTwilioDevice (response) {
+			var twilioToken = response.data;
+			Twilio.Device.setup(twilioToken);
+			Twilio.Device.ready(function(device){
+				setCallState("Ready");
+				if ($scope.currentAgentState!="Ready")setAgentState("Ready");
+				});
+			Twilio.Device.error(function (error) {
+				console.log('Twilio.Device Error: ', error);
 			});
+			Twilio.Device.incoming(function (conn) {
+				localConn=conn;
+				$scope.disableAgentBtns=true;
+				setCallState("Ringing");
+				console.log('Incoming connection from ' + conn.parameters.From);
+				var archEnemyPhoneNumber = ' + 919940634233';
+				if (conn.parameters.From === archEnemyPhoneNumber) {
+					conn.reject();
+					console.log('It\'s your nemesis. Rejected call.');
+				} else { // accept the incoming connection and start two-way audio
+					console.log("Waiting for user to Pickup/End");
+				}
+			});
+			Twilio.Device.connect(function (conn) {
+				localConn=conn;
+				$scope.disableAgentBtns=true;
+				setCallState("Busy");
+				console.log("Twilio.Device.connect");
+			});
+			Twilio.Device.disconnect(function (conn) {
+				Twilio.Device.destroy();
+				$scope.disableAgentBtns=false;
+				if ($scope.currentAgentState!="Pause")setAgentState("Pause");
+				setCallState("NotReady");
+				console.log("Twilio.Device.disconnect");
+			});
+			Twilio.Device.cancel(function (conn) {
+				console.log("Twilio.Device.cancel");
+			});
+		}
+		//Agent UI
+		//Exposed Stuff
+		$scope.agentName = g_user.userName;
+		$scope.showBtnLogin = false;
+		$scope.showBtnReady = false;
+		$scope.showBtnPause = false;
+		$scope.showBtnLogout = false;
+		$scope.disableAgentBtns=false;
+		$scope.currentAgentState = "Logout";
+		$scope.clickedLogin = function () {
+			setAgentState("Login");
+		};
+		$scope.clickedReady = function () {
+			return getToken(g_user.userName).then(initTwilioDevice,function (response) {
+				console.error(response.data || 'Request	failed');
+			});
+		};
+		$scope.clickedPause = function () {
+			setAgentState("Pause");
+			Twilio.Device.destroy();
+		};
+		$scope.clickedLogout = function () {
+			setAgentState("Logout");
+		};
+		//Agent state Map
+		var agentStateMap = {
+			"Login": ["Ready"],
+			"Ready": ["Pause", "Logout","Busy"],
+			"Pause": ["Ready", "Logout"],
+			"Busy": ["Ready"],
+			"Logout": ["Login"]
+		};
+		//Agent State Manager
+		function setAgentState(newAgentState) {
+			if (agentStateMap[$scope.currentAgentState].indexOf(newAgentState) != -1) {
+				$scope.currentAgentState = newAgentState;
+				refreshAgentUI();
+			} else {
+				alert("Invalid newAgentState:" + newAgentState + " for currentAgentState: " + $scope.currentAgentState);
+			}
+		}
+		function refreshAgentUI() {
+			for (var state in agentStateMap) {
+				$scope["showBtn" + state] = agentStateMap[$scope.currentAgentState].indexOf(state) != -1;
+			}
 			
 			if (!$scope.$$phase) $scope.$apply();
 			}
-		refreshCallUI();
-		
-		//Twilio Stuff
-		function getToken(agentName) {
-			$http({ method: "GET", url: "https://twapp.glitch.me/getToken/" + agentName }).then(function (response) {
-				var twilioToken = response.data;
-				Twilio.Device.setup(twilioToken);
-				Twilio.Device.ready(function(device){setCallState("Ready"); }     );
-					Twilio.Device.error(function (error) {
-						console.log('Twilio.Device Error: ', error);
-					});
-					Twilio.Device.incoming(function (conn) {
-						localConn=conn;
-						setCallState("Ringing");
-						console.log('Incoming connection from ' + conn.parameters.From);
-						var archEnemyPhoneNumber = ' + 919940634233';
-						if (conn.parameters.From === archEnemyPhoneNumber) {
-							conn.reject();
-							console.log('It\'s your nemesis. Rejected call.');
-						} else { // accept the incoming connection and start two-way audio
-							console.log("Waiting for user to Pickup/End");
-						}
-					});
-					Twilio.Device.connect(function (conn) {
-						localConn=conn;
-						setCallState("Busy");
-						console.log("Twilio.Device.connect");
-					});
-					Twilio.Device.disconnect(function (conn) {
-						localConn=conn;
-						setCallState("Ready");
-						console.log("Twilio.Device.disconnect");
-					});
-				}, function (response) {
-					console.error(response.data || 'Request	failed');
-				});
-			}
-			getToken(g_user.userName);
-		});
-		
-		ctiApp.controller("agentCtrl", function ($scope) { //Agent UI
-			//Exposed Stuff
-			$scope.agentName = g_user.userName;
-			$scope.showBtnLogin = false;
-			$scope.showBtnReady = false;
-			$scope.showBtnPause = false;
-			$scope.showBtnLogout = false;
-			$scope.currentAgentState = "Logout";
-			$scope.clickedLogin = function () {
-				setAgentState("Login");
-			};
-			$scope.clickedReady = function () {
-				setAgentState("Ready");
-			}; $scope.clickedPause = function () {
-				setAgentState("Pause");
-			};
-			$scope.clickedLogout = function () {
-				setAgentState("Logout");
-			};
-			//Agent state Map
-			var agentStateMap = { "Login": ["Ready"], "Ready": ["Pause", "Logout",], "Pause": ["Ready", "Logout"], "Busy": ["Pause", "Ready"], "Logout": ["Login"] };
-				//Agent State Manager
-				function setAgentState(newAgentState) {
-					if (agentStateMap[$scope.currentAgentState].indexOf(newAgentState) != -1) {
-						$scope.currentAgentState = newAgentState;
-						refreshAgentUI();
-					} else {
-						alert("Invalid newAgentState:" + newAgentState + " for currentAgentState: " + $scope.currentAgentState);
-					}
-				}
-				function refreshAgentUI() {
-					for (var state in agentStateMap) {
-						$scope["showBtn" + state] = agentStateMap[$scope.currentAgentState].indexOf(state) != -1;
-					}
-				}
-				refreshAgentUI();
-			});]]></client_script>
+		refreshAgentUI();
+	});]]></client_script>
         <description/>
         <direct>false</direct>
         <endpoint>x_206398_cti1_Agent Page.do</endpoint>
@@ -137,21 +166,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
   <!-- CSS Specifications -->
   <style>
-    html,
-    body,
-    h1,
-    h2,
-    h3,
-    h4 {
+    div,span,button {
       font-family: "Lato", sans-serif
     }
   </style>
 
   <!-- Widget HTML Code -->
-  <div class="w3-bottom w3-margin"  ng-app="ctiApp">
+  <div class="w3-bottom w3-margin"  ng-app="ctiApp" ng-controller="ctiCtrl">
 	  
 	  <!-- Call Management -->
-    <span class="w3-container" ng-controller="callCtrl">
+    <span class="w3-container" >
       <span class="w3-margin">
         <button ng-click="clickedAccept()" class="w3-button w3-ripple w3-green" ng-show="showBtnAccept">Accept</button>
         <button ng-click="clickedReject()" class="w3-button w3-ripple w3-red" ng-show="showBtnReject">Reject</button>
@@ -161,13 +185,13 @@
     </span>
 	  
     <!-- Agent State Management-->
-    <span class="w3-container" ng-controller="agentCtrl">
+    <span class="w3-container">
       <!-- Buttons (sit on top) -->
       <span class="w3-margin">
-        <button ng-click="clickedLogin()" class="w3-button w3-ripple w3-green" ng-show="showBtnLogin">Login</button>
-        <button ng-click="clickedReady()" class="w3-button w3-ripple w3-green" ng-show="showBtnReady">Ready</button>
-        <button ng-click="clickedPause()" class="w3-button w3-ripple w3-orange" ng-show="showBtnPause">Pause</button>
-        <button ng-click="clickedLogout()" class="w3-button w3-ripple w3-red" ng-show="showBtnLogout">Logout</button>
+        <button ng-click="clickedLogin()" class="w3-button w3-ripple w3-green" ng-show="showBtnLogin" ng-disabled="disableAgentBtns">Login</button>
+        <button ng-click="clickedReady()" class="w3-button w3-ripple w3-green" ng-show="showBtnReady" ng-disabled="disableAgentBtns">Ready</button>
+        <button ng-click="clickedPause()" class="w3-button w3-ripple w3-orange" ng-show="showBtnPause" ng-disabled="disableAgentBtns">Pause</button>
+        <button ng-click="clickedLogout()" class="w3-button w3-ripple w3-red" ng-show="showBtnLogout" ng-disabled="disableAgentBtns">Logout</button>
       </span>
       Agent Name : <span class="w3-tag w3-round">{{agentName}} </span>
       Current Agent State : <span class="w3-tag w3-round">{{currentAgentState}}</span>
@@ -185,13 +209,13 @@
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2018-04-28 12:59:24</sys_created_on>
         <sys_id>b38dd53c0ff113008dcbb36be1050e2f</sys_id>
-        <sys_mod_count>274</sys_mod_count>
+        <sys_mod_count>302</sys_mod_count>
         <sys_name>Agent Page</sys_name>
         <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
         <sys_policy/>
         <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
         <sys_update_name>sys_ui_page_b38dd53c0ff113008dcbb36be1050e2f</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2018-05-02 14:04:47</sys_updated_on>
+        <sys_updated_on>2018-05-03 13:16:59</sys_updated_on>
     </sys_ui_page>
 </record_update>
