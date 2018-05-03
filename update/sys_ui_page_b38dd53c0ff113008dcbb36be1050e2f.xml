@@ -61,7 +61,10 @@ ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
 		}
 		
 		function initTwilioDevice (response) {
+			
 			var twilioToken = response.data;
+			$scope.disableAgentBtns=false;
+			//if (!$scope.$$phase) $scope.$apply();
 			Twilio.Device.setup(twilioToken);
 			Twilio.Device.ready(function(device){
 				setCallState("Ready");
@@ -69,7 +72,13 @@ ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
 				});
 			Twilio.Device.error(function (error) {
 				console.log('Twilio.Device Error: ', error);
+				if ($scope.currentAgentState==="Ready" && $scope.currentCallState==="Ready"){
+					getToken(g_user.userName).then(initTwilioDevice,function (response) {
+						console.error(response.data || 'Request	failed');
+					});
+				}
 			});
+			
 			Twilio.Device.incoming(function (conn) {
 				localConn=conn;
 				$scope.disableAgentBtns=true;
@@ -93,7 +102,7 @@ ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
 				Twilio.Device.destroy();
 				$scope.disableAgentBtns=false;
 				if ($scope.currentAgentState!="Pause")setAgentState("Pause");
-				setCallState("NotReady");
+					setCallState("NotReady");
 				console.log("Twilio.Device.disconnect");
 			});
 			Twilio.Device.cancel(function (conn) {
@@ -113,16 +122,25 @@ ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
 			setAgentState("Login");
 		};
 		$scope.clickedReady = function () {
+			$scope.disableAgentBtns=true;
+			if (!$scope.$$phase) $scope.$apply();
 			return getToken(g_user.userName).then(initTwilioDevice,function (response) {
 				console.error(response.data || 'Request	failed');
+				$scope.disableAgentBtns=false;
+				//if (!$scope.$$phase) $scope.$apply();
 			});
 		};
 		$scope.clickedPause = function () {
 			setAgentState("Pause");
+			setCallState("NotReady");
+			Twilio.Device.disconnectAll();
 			Twilio.Device.destroy();
 		};
 		$scope.clickedLogout = function () {
 			setAgentState("Logout");
+			setCallState("NotReady");
+			Twilio.Device.disconnectAll();
+			Twilio.Device.destroy();
 		};
 		//Agent state Map
 		var agentStateMap = {
@@ -209,13 +227,13 @@ ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2018-04-28 12:59:24</sys_created_on>
         <sys_id>b38dd53c0ff113008dcbb36be1050e2f</sys_id>
-        <sys_mod_count>302</sys_mod_count>
+        <sys_mod_count>309</sys_mod_count>
         <sys_name>Agent Page</sys_name>
         <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
         <sys_policy/>
         <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
         <sys_update_name>sys_ui_page_b38dd53c0ff113008dcbb36be1050e2f</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2018-05-03 13:16:59</sys_updated_on>
+        <sys_updated_on>2018-05-03 14:01:48</sys_updated_on>
     </sys_ui_page>
 </record_update>
