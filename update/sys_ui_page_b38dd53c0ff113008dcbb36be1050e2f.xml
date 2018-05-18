@@ -193,27 +193,27 @@ ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
   <div class="w3-bottom w3-margin"  ng-app="ctiApp" ng-controller="ctiCtrl">
 	  
 	  <!-- Call Management -->
-    <span class="w3-container" >
+    <div class="w3-block" >
+		
       <span class="w3-margin">
-        <button ng-click="clickedAccept()" class="w3-button w3-ripple w3-green" ng-show="showBtnAccept">Accept</button>
-        <button ng-click="clickedReject()" class="w3-button w3-ripple w3-red" ng-show="showBtnReject">Reject</button>
-        <button ng-click="clickedEnd()" class="w3-button w3-ripple w3-red" ng-show="showBtnEnd">End Call</button>
+        <button ng-click="clickedAccept()" class="w3-button w3-ripple w3-green" ng-disabled="!showBtnAccept">Accept</button>
+        <button ng-click="clickedReject()" class="w3-button w3-ripple w3-red" ng-disabled="!showBtnReject">Reject</button>
+        <button ng-click="clickedEnd()" class="w3-button w3-ripple w3-red" ng-disabled="!showBtnEnd">End Call</button>
       </span>
-      Current Call State : <span class="w3-tag w3-round">{{currentCallState}}</span>
-    </span>
-	  
-    <!-- Agent State Management-->
-    <span class="w3-container">
-      <!-- Buttons (sit on top) -->
-      <span class="w3-margin">
+		<span class="w3-margin">
         <button ng-click="clickedLogin()" class="w3-button w3-ripple w3-green" ng-show="showBtnLogin" ng-disabled="disableAgentBtns">Login</button>
         <button ng-click="clickedReady()" class="w3-button w3-ripple w3-green" ng-show="showBtnReady" ng-disabled="disableAgentBtns">Ready</button>
         <button ng-click="clickedPause()" class="w3-button w3-ripple w3-orange" ng-show="showBtnPause" ng-disabled="disableAgentBtns">Pause</button>
         <button ng-click="clickedLogout()" class="w3-button w3-ripple w3-red" ng-show="showBtnLogout" ng-disabled="disableAgentBtns">Logout</button>
       </span>
-      Agent Name : <span class="w3-tag w3-round">{{agentName}} </span>
-      Current Agent State : <span class="w3-tag w3-round">{{currentAgentState}}</span>
-    </span>
+      
+    </div>
+	  
+    <div class="w3-block">
+      <span class="w3-tag w3-round">Current Call State : {{currentCallState}}</span>
+      <span class="w3-tag w3-round">Agent Name : {{agentName}} </span>
+      <span class="w3-tag w3-round">Current Agent State : {{currentAgentState}}</span>
+    </div>
     
   </div>
 
@@ -227,13 +227,13 @@ ctiApp.controller("ctiCtrl", function ($scope, $http) { // Private Vars
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2018-04-28 12:59:24</sys_created_on>
         <sys_id>b38dd53c0ff113008dcbb36be1050e2f</sys_id>
-        <sys_mod_count>309</sys_mod_count>
+        <sys_mod_count>312</sys_mod_count>
         <sys_name>Agent Page</sys_name>
         <sys_package display_value="cti1" source="x_206398_cti1">b94ab9350f2113008dcbb36be1050e6f</sys_package>
         <sys_policy/>
         <sys_scope display_value="cti1">b94ab9350f2113008dcbb36be1050e6f</sys_scope>
         <sys_update_name>sys_ui_page_b38dd53c0ff113008dcbb36be1050e2f</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2018-05-03 14:01:48</sys_updated_on>
+        <sys_updated_on>2018-05-03 14:13:36</sys_updated_on>
     </sys_ui_page>
 </record_update>
